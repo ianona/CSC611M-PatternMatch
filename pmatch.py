@@ -40,7 +40,7 @@ def search(pat, txt):
             j += 1
   
         if (j == M and len(pat)==len(txt)):  
-        	print(pat + " is a word: " + txt)
+        	# print(pat + " is a word: " + txt)
         	break
             # print("Pattern found at index ", i) 
   
