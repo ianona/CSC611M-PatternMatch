@@ -7,6 +7,7 @@ import sys
 import os
 import csv
 import datetime
+import multiprocessing as mp
 import psutil
 
 THREAD_COUNT = os.cpu_count()
@@ -76,14 +77,16 @@ def computeLPSArray(pat, M, lps):
 				i += 1
 
 
-class workerThread (threading.Thread):
-	def __init__(self, threadID,startIndex,endIndex,words):
-		threading.Thread.__init__(self)
-		self.threadID=threadID
+class workerProcess (mp.Process):
+	def __init__(self, processID,startIndex,endIndex,words,errors,lock):
+		super(workerProcess,self).__init__()
+		self.processID=processID
 		self.startIndex=startIndex
 		self.endIndex=endIndex
 		self.words=words
-		self.lock = threading.Lock()
+		self.lock = lock
+		self.errors = errors
+
 	def run(self):
 		print("Starting " + self.name + " on words " + str(self.startIndex) + "-" + str(self.endIndex))
 		for i in range(self.startIndex,self.endIndex):
@@ -99,15 +102,16 @@ class workerThread (threading.Thread):
 			# print out mispelled words
 			if not found:
 				# logging.debug('Waiting for lock')
-				self.lock.acquire()
-				try:
-					# logging.debug('Acquired lock')
-					global errors
-					errors.append(word)
-				finally:
-					# logging.debug('Released Lock')
-					self.lock.release()
-
+				# self.lock.acquire()
+				# try:
+				#   logging.debug('Acquired lock')
+				#   global errors
+				#   errors.append(word)
+				# finally:
+				#   logging.debug('Released Lock')
+				#   self.lock.release()
+				with self.lock:
+					self.errors.value +=1
 				print(word)
 
 def fileCheck(fname):
@@ -129,26 +133,30 @@ def fileCheck(fname):
 		else:
 			ranges.append((i*skip,(i+1)*skip))
 
-	threads=[]
+	processes=[]
 	count=1
+	errors = mp.Manager().Value('i',  0)
+	lock = mp.Manager().Lock()
+
 	for r in ranges:
-		thread = workerThread(count, r[0],r[1],words)
-		threads.append(thread)
+		process = workerProcess(count, r[0],r[1],words,errors,lock)
+		processes.append(process)
 		count+=1
 
 	print("Mispelled words:")
 	start = time.time()
-	[t.start() for t in threads]
-	[t.join() for t in threads]
+	[p.start() for p in processes]
+	[p.join() for p in processes]
 	end = time.time()
 	process = psutil.Process(os.getpid()) 
+	# in  bytes
 	memoryUse = process.memory_info().rss
 	cpu=psutil.cpu_percent()
 	ram=psutil.virtual_memory().percent
-	return [len(words),len(errors),(end-start),memoryUse,ram,cpu]
+	return [len(words),errors.value,(end-start),memoryUse,ram,cpu]
 
 def writeResults(row):
-	fname = 'kmp-parallel-multit-results.csv'
+	fname = 'kmp-parallel-multip-results.csv'
 	if not os.path.exists(fname):
 		f = open(fname, 'w')
 		with f:
@@ -171,7 +179,6 @@ if __name__ == "__main__":
 	  
 	# Closing file 
 	f.close() 
-	errors=[]
 	# get arguments
 	try:
 		arg = sys.argv[1]
@@ -181,7 +188,7 @@ if __name__ == "__main__":
 
 	if os.path.isfile(arg):
 		timestamp = datetime.datetime.now()
-		print("KMP Parallel Threading Algorithm for file: "+arg)
+		print("KMP Parallel Multiprocessing Algorithm for file: "+arg)
 		results = fileCheck(arg)
 		timeElapsed = results[2]
 		wordCount = results[0]
@@ -192,7 +199,7 @@ if __name__ == "__main__":
 		print("Execution time: " + str(timeElapsed))
 		writeResults([timestamp,arg,wordCount,errorCount,timeElapsed,memory,ram,cpu])
 	elif os.path.isdir(arg):
-		print("KMP Parallel Threading Algorithm for files in folder: "+arg)
+		print("KMP Parallel Multiprocessing Algorithm for files in folder: "+arg)
 		for file in os.listdir(arg):
 			timestamp = datetime.datetime.now()
 			print("FILENAME: " + file)

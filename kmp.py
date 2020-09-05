@@ -5,6 +5,7 @@ import sys
 import os
 import csv
 import datetime
+import psutil
 
 # Python program for KMP Algorithm 
 def KMPSearch(pat, txt): 
@@ -93,7 +94,11 @@ def fileCheck(fname):
             print(word)
 
     end = time.time()
-    return [len(words),len(errors),(end-start)]
+    process = psutil.Process(os.getpid()) 
+    memoryUse = process.memory_info().rss
+    cpu=psutil.cpu_percent()
+    ram=psutil.virtual_memory().percent
+    return [len(words),len(errors),(end-start),memoryUse,ram,cpu]
 
 def writeResults(row):
     fname = 'kmp-seq-results.csv'
@@ -101,7 +106,7 @@ def writeResults(row):
         f = open(fname, 'w')
         with f:
             writer = csv.writer(f)
-            writer.writerow(['timestamp','file/folder name','total words','errors found','time elapsed'])
+            writer.writerow(['timestamp','file name','total words','errors found','time elapsed','memory','ram','cpu'])
 
     with open(fname, 'a+', newline='') as write_obj:
         writer = csv.writer(write_obj)
@@ -131,30 +136,33 @@ if __name__ == "__main__":
         #fallback in case no argument was passed
         arg = "sample.txt"
 
-    timestamp = datetime.datetime.now()
-
     if os.path.isfile(arg):
+        timestamp = datetime.datetime.now()
         print("KMP Sequential Algorithm for file: "+arg)
         results = fileCheck(arg)
         timeElapsed = results[2]
         wordCount = results[0]
         errorCount = results[1]
+        memory = results[3]
+        ram = results[4]
+        cpu = results[5]
         print("Execution time: " + str(timeElapsed))
-        writeResults([timestamp,arg,wordCount,errorCount,timeElapsed])
+        writeResults([timestamp,arg,wordCount,errorCount,timeElapsed,memory,ram,cpu])
     elif os.path.isdir(arg):
         print("KMP Sequential Algorithm for files in folder: "+arg)
-        timeElapsed = 0
-        wordCount=0
-        errorCount=0
         for file in os.listdir(arg):
+            timestamp = datetime.datetime.now()
             print("FILENAME: " + file)
             results = fileCheck(arg+'/'+file)
-            timeElapsed += results[2]
-            wordCount+= results[0]
-            errorCount+= results[1]
+            timeElapsed = results[2]
+            wordCount = results[0]
+            errorCount = results[1]
+            memory = results[3]
+            ram = results[4]
+            cpu = results[5]
+            print("Execution time: " + str(timeElapsed))
+            writeResults([timestamp,file,wordCount,errorCount,timeElapsed,memory,ram,cpu])
             print('-------------------')
-        print("Execution time: " + str(timeElapsed))
-        writeResults([timestamp,arg,wordCount,errorCount,timeElapsed])
     else:
         print("File/directory does not exist in project path")
 
