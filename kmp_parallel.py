@@ -96,7 +96,7 @@ class workerThread (threading.Thread):
 				if found:
 					break
 
-			# print out mispelled words
+			# print out misspelled words
 			if not found:
 				# logging.debug('Waiting for lock')
 				self.lock.acquire()
@@ -136,7 +136,7 @@ def fileCheck(fname):
 		threads.append(thread)
 		count+=1
 
-	print("Mispelled words:")
+	print("Misspelled words:")
 	start = time.time()
 	[t.start() for t in threads]
 	[t.join() for t in threads]

@@ -99,7 +99,7 @@ class workerProcess (mp.Process):
 				if found:
 					break
 
-			# print out mispelled words
+			# print out misspelled words
 			if not found:
 				# logging.debug('Waiting for lock')
 				# self.lock.acquire()
@@ -143,7 +143,7 @@ def fileCheck(fname):
 		processes.append(process)
 		count+=1
 
-	print("Mispelled words:")
+	print("Misspelled words:")
 	start = time.time()
 	[p.start() for p in processes]
 	[p.join() for p in processes]
