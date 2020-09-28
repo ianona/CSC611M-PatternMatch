@@ -150,7 +150,7 @@ def fileCheck(fname):
 	end = time.time()
 	process = psutil.Process(os.getpid()) 
 	# in  bytes
-	memoryUse = process.memory_info().rss
+	memoryUse = process.memory_info().rss/1000000
 	cpu=psutil.cpu_percent()
 	ram=psutil.virtual_memory().percent
 	return [len(words),errors.value,(end-start),memoryUse,ram,cpu]

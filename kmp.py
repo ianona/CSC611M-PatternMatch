@@ -95,7 +95,7 @@ def fileCheck(fname):
 
     end = time.time()
     process = psutil.Process(os.getpid()) 
-    memoryUse = process.memory_info().rss
+    memoryUse = process.memory_info().rss/1000000
     cpu=psutil.cpu_percent()
     ram=psutil.virtual_memory().percent
     return [len(words),len(errors),(end-start),memoryUse,ram,cpu]
@@ -111,10 +111,6 @@ def writeResults(row):
     with open(fname, 'a+', newline='') as write_obj:
         writer = csv.writer(write_obj)
         writer.writerow(row)
-
-
-# This code is contributed by Bhavya Jain 
-
 
 if __name__ == "__main__":    
     # Loading dictionary

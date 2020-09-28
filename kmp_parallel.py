@@ -19,7 +19,7 @@ logging.basicConfig(level=logging.DEBUG,
 def KMPSearch(pat, txt): 
 	M = len(pat) 
 	N = len(txt) 
-  
+	
 	# create lps[] that will hold the longest prefix suffix  
 	# values for pattern 
 	lps = [0]*M 
@@ -142,7 +142,7 @@ def fileCheck(fname):
 	[t.join() for t in threads]
 	end = time.time()
 	process = psutil.Process(os.getpid()) 
-	memoryUse = process.memory_info().rss
+	memoryUse = process.memory_info().rss/1000000
 	cpu=psutil.cpu_percent()
 	ram=psutil.virtual_memory().percent
 	return [len(words),len(errors),(end-start),memoryUse,ram,cpu]
